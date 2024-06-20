@@ -6,13 +6,14 @@
 #    By: pibouill <pibouill@student.42prague.c      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/19 17:54:00 by pibouill          #+#    #+#              #
-#    Updated: 2024/06/19 17:56:55 by pibouill         ###   ########.fr        #
+#    Updated: 2024/06/20 15:14:09 by pibouill         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import os
+import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,21 +30,25 @@ def mention_handler(body: dict, say: callable):
     bot_id = body.get("event", {}).get("text").split()[0]
     sender_submission = body.get("event", {}).get("text")
     sender_submission = sender_submission.replace(bot_id, "").strip()
+    sending_time = body.get("event_time")
+    sending_time = datetime.datetime.utcfromtimestamp(sending_time)
     print(body)
+    print("\n-------------------------------------------------\n")
     print("\nbot_id-->", bot_id)
     print("sender_id-->", sender_id)
     print("sender_submission-->", sender_submission)
 
 
     valid_input = "joe con - blabla"
-    if valid_input in sender_submission.lower():
+    if valid_input.lower() in sender_submission.lower():
         print("Good")
-        print(sender_submission)
         say("yep")
     else:
         print("Not Good")
         say("nope.")
 	
+    print("valid_input-->", valid_input)
+    print("sending_time-->", sending_time)
 
 if __name__ == "__main__":
     handler = SocketModeHandler(app, SLACK_APP_TOKEN)

@@ -6,7 +6,7 @@
 #    By: pibouill <pibouill@student.42prague.c      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/19 17:54:00 by pibouill          #+#    #+#              #
-#    Updated: 2024/06/20 15:14:09 by pibouill         ###   ########.fr        #
+#    Updated: 2024/09/09 13:01:50 by pibouill         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,7 +32,7 @@ def mention_handler(body: dict, say: callable):
     sender_submission = sender_submission.replace(bot_id, "").strip()
     sending_time = body.get("event_time")
     sending_time = datetime.datetime.utcfromtimestamp(sending_time)
-    print(body)
+    # print(body)
     print("\n-------------------------------------------------\n")
     print("\nbot_id-->", bot_id)
     print("sender_id-->", sender_id)

@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    app.py                                             :+:      :+:    :+:    #
+/*   app.py                                             :+:      :+:    :+:   */
 #                                                     +:+ +:+         +:+      #
 #    By: pibouill <pibouill@student.42prague.c      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/06/19 17:54:00 by pibouill          #+#    #+#              #
-#    Updated: 2024/09/09 13:01:50 by pibouill         ###   ########.fr        #
+#    Created: 2024/10/09 13:11:29 by pibouill          #+#    #+#              #
+/*   Updated: 2024/10/09 13:11:40 by pibouill         ###   ########.fr       */
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,6 +32,7 @@ def mention_handler(body: dict, say: callable):
     sender_submission = sender_submission.replace(bot_id, "").strip()
     sending_time = body.get("event_time")
     sending_time = datetime.datetime.utcfromtimestamp(sending_time)
+
     # print(body)
     print("\n-------------------------------------------------\n")
     print("\nbot_id-->", bot_id)
@@ -39,7 +40,6 @@ def mention_handler(body: dict, say: callable):
     print("sender_submission-->", sender_submission)
 
 
-    valid_input = "joe con - blabla"
     if valid_input.lower() in sender_submission.lower():
         print("Good")
         say("yep")
@@ -51,6 +51,7 @@ def mention_handler(body: dict, say: callable):
     print("sending_time-->", sending_time)
 
 if __name__ == "__main__":
+    valid_input = input("Your input: ")
     handler = SocketModeHandler(app, SLACK_APP_TOKEN)
 
     handler.start()

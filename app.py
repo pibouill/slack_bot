@@ -12,17 +12,18 @@ import os
 import datetime
 from dotenv import load_dotenv
 import leaderboard
+import signal
 
-class bcolors:
-     HEADER = '\033[95m'
-     OKBLUE = '\033[94m'
-     OKCYAN = '\033[96m'
-     OKGREEN = '\033[92m'
-     WARNING = '\033[93m'
-     FAIL = '\033[91m'
-     ENDC = '\033[0m'
-     BOLD = '\033[1m'
-     UNDERLINE = '\033[4m'
+class cls:
+     HEADER		= '\033[95m'
+     OKBLUE		= '\033[94m'
+     OKCYAN		= '\033[96m'
+     OKGREEN	= '\033[92m'
+     WARNING	= '\033[93m'
+     FAIL		= '\033[91m'
+     ENDC		= '\033[0m'
+     BOLD		= '\033[1m'
+     UNDERLINE	= '\033[4m'
 
 
 
@@ -33,6 +34,24 @@ SLACK_APP_TOKEN = os.environ['SLACK_APP_TOKEN']
 
 app = App(token=SLACK_BOT_TOKEN)
 
+###############################################################################
+def shutdown_handler(signum, frame):
+    print(f"{cls.OKCYAN}Shutdown signal received, cleaning up...{cls.ENDC}")
+
+    try:
+        app.client.chat_postMessage(
+            channel="#bot_test",
+            text="I'm going to sleep now <!channel>\nByebye"
+        )
+    except Exception as e:
+        print(f"{cls.WARNING}Failed to send shutdown message: {e}{cls.ENDC}")
+
+    exit(0)
+
+signal.signal(signal.SIGINT, shutdown_handler)
+signal.signal(signal.SIGTERM, shutdown_handler)
+
+###############################################################################
 @app.event("app_mention")
 def mention_handler(body: dict, say):
 
@@ -40,7 +59,7 @@ def mention_handler(body: dict, say):
 
     say(f"What's up? {user_id}\nGive me something")
 
-#### Get info from user's message
+#### Get info from user's message #############################################
     bot_id = body.get("event", {}).get("text").split()[0]
 
     user_submission = body.get("event", {}).get("text")
@@ -59,7 +78,7 @@ def mention_handler(body: dict, say):
     u = app.client.users_info(user=user_id_info)
     user_name = u.get('user', {}).get('real_name')
 
-########### Print infos
+############################## Print infos ####################################
     # print(body)
     # print(u)
     print("\n-------------------------------------------------\n")
@@ -71,7 +90,7 @@ def mention_handler(body: dict, say):
     print("valid_input-->", valid_input)
 
 
-######### Bot output
+###################Bot output##################################################
     if valid_input.lower() in user_submission.lower():
         print("Good")
         leaderboard.add_user_to_leaderboard(user_id_info)
@@ -80,7 +99,6 @@ def mention_handler(body: dict, say):
         print("Not Good")
         say("nope.")
 	
-
 @app.event("message")
 def	handle_message_events(body, logger):
 	logger.info("received message event: %s", body)
@@ -108,7 +126,6 @@ def show_rank(ack, body, say):
         say("I need a valid user name, starting with '@'.")
 
 def launch_message():
-	channel_id = 'C078TS7TD26'
 	message = (
         "yoyoyo <!channel> ready to do stuff???\n\n"
         "You can use the following commands to interact with me:\n\n"
@@ -117,10 +134,12 @@ def launch_message():
     )
 
 	try:
-		app.client.chat_postMessage(channel=channel_id, text=message)
-		print(f"{bcolors.OKGREEN}Launch message correctly sent{bcolors.ENDC}")
+		app.client.chat_postMessage(channel='#bot_test', text=message)
+		print(f"{cls.OKGREEN}Launch message correctly sent{cls.ENDC}")
 	except Exception as e:
-		print(f"{bcolors.WARNING}Error sending welcome message: {e}{bcolors.ENDC}")
+		print(f"{cls.WARNING}Error sending welcome message: {e}{cls.ENDC}")
+
+###############################################################################
 
 if __name__ == "__main__":
     valid_input = input("input: ")

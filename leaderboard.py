@@ -29,6 +29,8 @@ def load_leaderboard():
     with open(LEADERBOARD_FILE, 'r') as f:
         return json.load(f)
 
+leaderboard = load_leaderboard()
+
 def get_user_rank(user_id):
     if user_id not in leaderboard:
         return f"@{user_id} is not on the leaderboard yet"
@@ -47,7 +49,6 @@ def save_leaderboard(leaderboard):
     with open(LEADERBOARD_FILE, 'w') as f:
         json.dump(leaderboard, f)
 
-leaderboard = load_leaderboard()
 
 #add users to the leaderboard
 def add_user_to_leaderboard(user_id, points=1):

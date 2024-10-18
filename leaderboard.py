@@ -5,10 +5,17 @@
 ##########################
 ##########################
 
+from collections import UserDict
 import os
 import json
+import app
+from app import app
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 
 LEADERBOARD_FILE = "leaderboard.json"
+slack_token = os.getenv("SLACK_BOT_TOKEN")
+client = WebClient(token=slack_token)
 
 # Load leaderboard from JSON file
 
@@ -21,6 +28,19 @@ def load_leaderboard():
 
     with open(LEADERBOARD_FILE, 'r') as f:
         return json.load(f)
+
+def get_user_rank(user_id):
+    if user_id not in leaderboard:
+        return f"@{user_id} is not on the leaderboard yet"
+    if not leaderboard:
+        return "The leaderboard is currently empty."
+    sorted_leaderboard = sorted(leaderboard.items(), key=lambda item: item[1], reverse=True)
+
+    for rank, (uid, points) in enumerate(sorted_leaderboard, start=1):
+        if uid == user_id:
+            return f"@{user_id} is ranked #{rank} with {points} points"
+    return f"@{user_id} is not on the leaderboard yet"
+
 
 # Save leaderboard to JSON file
 def save_leaderboard(leaderboard):
@@ -37,14 +57,33 @@ def add_user_to_leaderboard(user_id, points=1):
         leaderboard[user_id] = points
     save_leaderboard(leaderboard)
 
+def get_user_real_name(app, user_id):
+    try:
+        user_info = app.client.users_info(user=user_id)
+        return user_info['user']['real_name']
+    except Exception as e:
+        print(f"{app.bcolors.WARNING}Error fetching user info: {e}")
+        return f"<@{user_id}>"
+
+    # try:
+    #     response = client.users_info(user=user_id)
+    #     user_info = response['user']
+    #     return user_info['real_name']
+    # except SlackApiError as e:
+    #     print(f"{app.bcolors.WARNING}fetching user info: {e.response['error']}{app.bcolors.ENDC}")
+
+
 #format the leaderboard for display
 def format_leaderboard():
     if not leaderboard:
         return "The leaderboard is currently empty."
 
     sorted_leaderboard = sorted(leaderboard.items(), key=lambda item: item[1], reverse=True)
-    formatted = "\n".join([f"<@{user_id}>: {points} points" for user_id, points in sorted_leaderboard])
-    return f"*Leaderboard:*\n{formatted}"
+    formatted = []
+    for user_id, points in sorted_leaderboard:
+        real_name = get_user_real_name(app, user_id)
+        formatted.append(f"{real_name}: {points} points")
+    return f"*Leaderboard:*\n\n" + "\n".join(formatted)
 
 #add points to a user (including the sender)
 def add_points(ack, body, say):
@@ -72,3 +111,4 @@ def add_points(ack, body, say):
 def show_leaderboard(ack, body, say):
     ack()  # Acknowledge the command request
     say(format_leaderboard())
+

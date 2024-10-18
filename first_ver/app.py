@@ -5,11 +5,12 @@
 ############
 ############
 
-from slack_bolt import App
+from slack_bolt import App, Say
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import os
 import datetime
 from dotenv import load_dotenv
+import leaderboard
 
 load_dotenv()
 
@@ -21,47 +22,64 @@ app = App(token=SLACK_BOT_TOKEN)
 @app.event("app_mention")
 def mention_handler(body: dict, say):
 
-    sender_id = f"<@{body.get('event', {}).get('user')}>"
+    user_id = f"<@{body.get('event', {}).get('user')}>"
 
-    say(f"What's up? {sender_id}")
+    say(f"What's up? {user_id}\nGive me something bebe")
 
+#### Get info from user's message
     bot_id = body.get("event", {}).get("text").split()[0]
-    sender_submission = body.get("event", {}).get("text")
-    sender_submission = sender_submission.replace(bot_id, "").strip()
+
+    user_submission = body.get("event", {}).get("text")
+
+    user_submission = user_submission.replace(bot_id, "").strip()
+
+    user_id_info = body.get('event', {}).get('user')
+
     sending_time = body.get("event_time")
+
     if sending_time is not None:
-       # sending_time = datetime.datetime.fromtimestamp(sending_time, tz=datetime.timezone.utc)
        sending_time = datetime.datetime.fromtimestamp(sending_time)
     else:
        sending_time = None
 
-    # print()
+    u = app.client.users_info(user=user_id_info)
+    user_name = u.get('user', {}).get('name')
+
+########### Print infos
+    # print(body)
+    print(u)
     print("\n-------------------------------------------------\n")
     print("\nbot_id-->", bot_id)
-    print("sender_id-->", sender_id)
-    print("sender_submission-->", sender_submission)
+    print("user_id-->", user_id)
+    print("user_name -->", user_name)
+    print("user_submission-->", user_submission)
+    print("sending_time-->", sending_time)
+    print("valid_input-->", valid_input)
 
 
-    if valid_input.lower() in sender_submission.lower():
+######### Bot output
+    if valid_input.lower() in user_submission.lower():
         print("Good")
-        say("yep")
+        leaderboard.add_user_to_leaderboard(user_id_info)
+        say(f"YOU GOT IT\n:clap: :clap:\n You win 1 point, {user_name}!")
     else:
         print("Not Good")
         say("nope.")
 	
-    print("valid_input-->", valid_input)
-    print("sending_time-->", sending_time)
 
 @app.event("message")
 def	handle_message_events(body, logger):
 	logger.info("received message event: %s", body)
 
-	# You can add more logic here to respond to general messages if needed
-    # For example, you might want to filter by user_id or channel_id
-    # and perform specific actions based on the message content.
+# @app.command("/addpoints")
+# def add_points(ack, body, say):
+#     ack()
+#     leaderboard.add_points(ack, body, say)
 
-
-
+@app.command("/leaderboard")
+def show_leaderboard(ack, body, say):
+    ack()
+    leaderboard.show_leaderboard(ack, body, say)
 
 if __name__ == "__main__":
     valid_input = input("Your input: ")

@@ -38,13 +38,13 @@ app = App(token=SLACK_BOT_TOKEN)
 def shutdown_handler(signum, frame):
     print(f"{cls.OKCYAN}Shutdown signal received, cleaning up...{cls.ENDC}")
 
-    try:
-        app.client.chat_postMessage(
-            channel="#bot_test",
-            text="I'm going to sleep now <!channel>\nByebye"
-        )
-    except Exception as e:
-        print(f"{cls.WARNING}Failed to send shutdown message: {e}{cls.ENDC}")
+    # try:
+    #     app.client.chat_postMessage(
+    #         channel="#bot_test",
+    #         text="I'm going to sleep now <!channel>\nByebye"
+    #     )
+    # except Exception as e:
+    #     print(f"{cls.WARNING}Failed to send shutdown message: {e}{cls.ENDC}")
 
     exit(0)
 
@@ -108,6 +108,7 @@ def	handle_message_events(body, logger):
 #     ack()
 #     leaderboard.add_points(ack, body, say)
 
+#########################Slash commands calls##################################
 @app.command("/leaderboard")
 def show_leaderboard(ack, body, say):
     ack()
@@ -117,33 +118,34 @@ def show_leaderboard(ack, body, say):
 def show_rank(ack, body, say):
     ack()
     user_mention = body.get('text', '').strip()
+    print(f"User mention received: {user_mention}")
 
     if user_mention:
-        user_id = user_mention.strip("<@>")
-        rank_message = leaderboard.get_user_rank(user_id)
+        rank_message = leaderboard.get_user_rank(user_mention, app)
         say(rank_message)
     else:
-        say("I need a valid user name, starting with '@'.")
+        say("I need a valid user name, starting with '@' or just the name.")
 
-def launch_message():
-	message = (
-        "yoyoyo <!channel> ready to do stuff???\n\n"
-        "You can use the following commands to interact with me:\n\n"
-        "`/leaderboard` -> Get the current top 5 rank\n"
-        "`/get_rank <user_name>` -> Get the current rank of the specified user\n"
-    )
+########################Launch Message#########################################
+# def launch_message():
+	# message = (
+    #     "yoyoyo <!channel> ready to do stuff???\n\n"
+    #     "You can use the following commands to interact with me:\n\n"
+    #     "`/leaderboard` -> Get the current top 5 rank\n"
+    #     "`/get_rank <user_name>` -> Get the current rank of the specified user\n"
+    # )
 
-	try:
-		app.client.chat_postMessage(channel='#bot_test', text=message)
-		print(f"{cls.OKGREEN}Launch message correctly sent{cls.ENDC}")
-	except Exception as e:
-		print(f"{cls.WARNING}Error sending welcome message: {e}{cls.ENDC}")
+	# try:
+	#     app.client.chat_postMessage(channel='#bot_test', text=message)
+	#     print(f"{cls.OKGREEN}Launch message correctly sent{cls.ENDC}")
+	# except Exception as e:
+	#     print(f"{cls.WARNING}Error sending welcome message: {e}{cls.ENDC}")
 
 ###############################################################################
 
 if __name__ == "__main__":
     valid_input = input("input: ")
-    launch_message()
+    # launch_message()
     handler = SocketModeHandler(app, SLACK_APP_TOKEN)
 
     handler.start()

@@ -9,7 +9,7 @@ from collections import UserDict
 import os
 import json
 import app
-from app import app
+from app import cls
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
@@ -31,18 +31,6 @@ def load_leaderboard():
 
 leaderboard = load_leaderboard()
 
-def get_user_rank(user_id):
-    if user_id not in leaderboard:
-        return f"@{user_id} is not on the leaderboard yet"
-    if not leaderboard:
-        return "The leaderboard is currently empty."
-    sorted_leaderboard = sorted(leaderboard.items(), key=lambda item: item[1], reverse=True)
-
-    for rank, (uid, points) in enumerate(sorted_leaderboard, start=1):
-        if uid == user_id:
-            return f"@{user_id} is ranked #{rank} with {points} points"
-    return f"@{user_id} is not on the leaderboard yet"
-
 
 # Save leaderboard to JSON file
 def save_leaderboard(leaderboard):
@@ -63,7 +51,7 @@ def get_user_real_name(app, user_id):
         user_info = app.client.users_info(user=user_id)
         return user_info['user']['real_name']
     except Exception as e:
-        print(f"{app.bcolors.WARNING}Error fetching user info: {e}")
+        print(f"{cls.WARNING}Error fetching user info: {e}{cls.ENDC}")
         return f"<@{user_id}>"
 
     # try:
@@ -73,6 +61,26 @@ def get_user_real_name(app, user_id):
     # except SlackApiError as e:
     #     print(f"{app.bcolors.WARNING}fetching user info: {e.response['error']}{app.bcolors.ENDC}")
 
+user_cache = {}
+
+def get_user_id_by_name(app, name):
+    """Resolve a user by real name or mention, using a cache."""
+    if name in user_cache:
+        return user_cache[name]
+    try:
+        users_list = app.client.users_list()
+        for user in users_list['members']:
+            user_cache[user['real_name']] = user['id']
+            user_cache[user['name']] = user['id']
+            user_cache[user['id']] = user['id']
+
+            if user.get('real_name') == name or user.get('name') == name:
+             return user['id']  # Return user ID if found
+
+    except Exception as e:
+        print(f"Error fetching user list: {e}")
+
+    return None  # Return None if no matching user is found
 
 #format the leaderboard for display
 def format_leaderboard():
@@ -87,29 +95,43 @@ def format_leaderboard():
     return f"*Leaderboard:*\n\n" + "\n".join(formatted)
 
 #add points to a user (including the sender)
-def add_points(ack, body, say):
-    ack()  # Acknowledge the command request
+# def add_points(ack, body, say):
+#     ack()  # Acknowledge the command request
 
-    user_id = body['user_id']
-    text = body.get('text', '').strip()
+#     user_id = body['user_id']
+#     text = body.get('text', '').strip()
 
-    # If text is empty, add points to the sender
-    if not text:
-        add_user_to_leaderboard(user_id)
-        say(f"<@{user_id}> has been added to the leaderboard with 1 point!")
-    else:
-        try:
-            # Allow tagging users and specifying points (optional)
-            target_user = text.split()[0].strip("<@>")
-            points = int(text.split()[1]) if len(text.split()) > 1 else 1
+#     # If text is empty, add points to the sender
+#     if not text:
+#         add_user_to_leaderboard(user_id)
+#         say(f"<@{user_id}> has been added to the leaderboard with 1 point!")
+#     else:
+#         try:
+#             # Allow tagging users and specifying points (optional)
+#             target_user = text.split()[0].strip("<@>")
+#             points = int(text.split()[1]) if len(text.split()) > 1 else 1
 
-            add_user_to_leaderboard(target_user, points)
-            say(f"<@{target_user}> has been awarded {points} point(s)!")
-        except (IndexError, ValueError):
-            say("Invalid input! Use the format `/addpoints @user [points]`")
+#             add_user_to_leaderboard(target_user, points)
+#             say(f"<@{target_user}> has been awarded {points} point(s)!")
+#         except (IndexError, ValueError):
+#             say("Invalid input! Use the format `/addpoints @user [points]`")
 
 # Command to show the leaderboard
 def show_leaderboard(ack, body, say):
     ack()  # Acknowledge the command request
     say(format_leaderboard())
+
+def get_user_rank(user_id, app):
+    user_name = get_user_id_by_name(app, user_id)
+    if user_name is None:
+        return f"{cls.WARNING}User '{user_name}' not found on the leaderboard.{cls.ENDC}"
+    if user_name not in leaderboard:
+        return f"@{user_name} is not on the leaderboard yet"
+    if not leaderboard:
+        return "The leaderboard is currently empty."
+    sorted_leaderboard = sorted(leaderboard.items(), key=lambda item: item[1], reverse=True)
+    for rank, (uid, points) in enumerate(sorted_leaderboard, start=1):
+        if uid == user_id:
+            return f"@{user_name} is ranked #{rank} with {points} points"
+    return f"@{user_name} is not on the leaderboard yet"
 

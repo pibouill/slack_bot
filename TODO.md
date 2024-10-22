@@ -10,7 +10,7 @@
 - [ ] give users point only for first submission and tell them they already played
 - [ ] give users x number of tries if wrong
 - [ ] slash command to list the previous songs played
-- [ ] slash command to get specific user rank
+- [-] slash command to get specific user rank
 
 ### Points
 

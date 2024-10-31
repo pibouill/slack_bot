@@ -119,19 +119,20 @@ def format_leaderboard():
 # Command to show the leaderboard
 def show_leaderboard(ack, body, say):
     ack()  # Acknowledge the command request
-    say(format_leaderboard())
+    say(format_leaderboard().replace('@', ''))
 
 def get_user_rank(user_id, app):
-    user_name = get_user_id_by_name(app, user_id)
-    if user_name is None:
-        return f"{cls.WARNING}User '{user_name}' not found on the leaderboard.{cls.ENDC}"
-    if user_name not in leaderboard:
-        return f"@{user_name} is not on the leaderboard yet"
+    user_id = get_user_id_by_name(app, user_id)
+    real_name = get_user_real_name(app, user_id)
+    if user_id is None:
+        return f"Player not found on the leaderboard.\nCheck yo typing skillz"
+    if user_id not in leaderboard:
+        return f"@{real_name} is not on the leaderboard yet"
     if not leaderboard:
         return "The leaderboard is currently empty."
     sorted_leaderboard = sorted(leaderboard.items(), key=lambda item: item[1], reverse=True)
     for rank, (uid, points) in enumerate(sorted_leaderboard, start=1):
         if uid == user_id:
-            return f"@{user_name} is ranked #{rank} with {points} points"
-    return f"@{user_name} is not on the leaderboard yet"
+            return f"@{real_name} is ranked #{rank} with {points} points"
+    return f"@{user_id} is not on the leaderboard yet"
 

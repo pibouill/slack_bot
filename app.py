@@ -117,14 +117,14 @@ def show_leaderboard(ack, body, say):
 @app.command("/get_rank")
 def show_rank(ack, body, say):
     ack()
-    user_mention = body.get('text', '').strip()
-    print(f"User mention received: {user_mention}")
+    user_name = body.get('text', '').strip()
+    # print(f"User mention received: {user_name}")
 
-    if user_mention:
-        rank_message = leaderboard.get_user_rank(user_mention, app)
+    if user_name:
+        rank_message = leaderboard.get_user_rank(user_name, app)
         say(rank_message)
     else:
-        say("I need a valid user name, starting with '@' or just the name.")
+        say("I need a valid user name, aka. login.")
 
 ########################Launch Message#########################################
 # def launch_message():

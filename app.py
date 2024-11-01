@@ -1,12 +1,17 @@
-############
-############
-############
-############
-############
-############
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    app.py                                             :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: pibouill <pibouill@student.42prague.com>   +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/09/01 12:24:16 by pibouill          #+#    #+#              #
+#    Updated: 2024/11/01 13:08:24 by pibouill         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
 
 from logging import WARNING
-from slack_bolt import App, Say
+from slack_bolt import App, Say, response
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import os
 import datetime
@@ -14,6 +19,7 @@ from dotenv import load_dotenv
 from slack_bolt.context import respond
 import leaderboard
 import signal
+import time
 
 class cls:
      HEADER		= '\033[95m'
@@ -26,8 +32,6 @@ class cls:
      BOLD		= '\033[1m'
      UNDERLINE	= '\033[4m'
 
-
-
 load_dotenv()
 
 SLACK_BOT_TOKEN = os.environ['SLACK_BOT_TOKEN']
@@ -35,80 +39,80 @@ SLACK_APP_TOKEN = os.environ['SLACK_APP_TOKEN']
 
 app = App(token=SLACK_BOT_TOKEN)
 
-###############################################################################
+################Signals handler################################################
+
 def shutdown_handler(signum, frame):
     print(f"{cls.OKCYAN}Shutdown signal received, cleaning up...{cls.ENDC}")
-
-    # try:
-    #     app.client.chat_postMessage(
-    #         channel="#bot_test",
-    #         text="I'm going to sleep now <!channel>\nByebye"
-    #     )
-    # except Exception as e:
-    #     print(f"{cls.WARNING}Failed to send shutdown message: {e}{cls.ENDC}")
-
     exit(0)
 
 signal.signal(signal.SIGINT, shutdown_handler)
 signal.signal(signal.SIGTERM, shutdown_handler)
 
 ###############################################################################
+
 @app.event("app_mention")
-def mention_handler(body: dict, say):
+def mention_handler(body: dict, client):
 
-    user_id = f"<@{body.get('event', {}).get('user')}>"
-
-    say(f"What's up? {user_id}\nGive me something")
+	user_id = body.get('event', {}).get('user')
+	
+    # user_id = body['event']['user']
+	print(user_id)
+	client.chat_postMessage(
+        channel = user_id,
+        text=f"What's up? {user_id}\nGive me something"
+    )
 
 #### Get info from user's message #############################################
-    bot_id = body.get("event", {}).get("text").split()[0]
 
-    user_submission = body.get("event", {}).get("text")
+	bot_id = body.get("event", {}).get("text").split()[0]
 
-    user_submission = user_submission.replace(bot_id, "").strip()
+	user_submission = body.get("event", {}).get("text")
 
-    user_id_info = body.get('event', {}).get('user')
+	user_submission = user_submission.replace(bot_id, "").strip()
 
-    sending_time = body.get("event_time")
+	user_id_info = body.get('event', {}).get('user')
 
-    if sending_time is not None:
-       sending_time = datetime.datetime.fromtimestamp(sending_time)
-    else:
-       sending_time = None
+	sending_time = body.get("event_time")
 
-    u = app.client.users_info(user=user_id_info)
-    user_name = u.get('user', {}).get('real_name')
+	if sending_time is not None:
+		sending_time = datetime.datetime.fromtimestamp(sending_time)
+	else:
+		sending_time = None
+
+	u = app.client.users_info(user=user_id_info)
+	user_name = u.get('user', {}).get('real_name')
 
 ############################## Print infos ####################################
-    # print(body)
-    # print(u)
-    print("\n-------------------------------------------------\n")
-    print("\nbot_id-->", bot_id)
-    print("user_id-->", user_id)
-    print("user_name -->", user_name)
-    print("user_submission-->", user_submission)
-    print("sending_time-->", sending_time)
-    print("valid_input-->", valid_input)
 
+    # print(body)
+	print("\n-------------------------------------------------\n")
+	print("\nbot_id-->", bot_id)
+	print("user_id-->", user_id)
+	print("user_name -->", user_name)
+	print("user_submission-->", user_submission)
+	print("sending_time-->", sending_time)
+	print("valid_input-->", valid_input)
 
 ###################Bot output##################################################
-    if valid_input.lower() in user_submission.lower():
-        print("Good")
-        leaderboard.add_user_to_leaderboard(user_id_info)
-        say(f"YOU GOT IT\n:clap: :clap:\n You win 1 point, {user_id}!")
-    else:
-        print("Not Good")
-        say("nope.")
+
+	if valid_input.lower() in user_submission.lower():
+		print("Good")
+		leaderboard.add_user_to_leaderboard(user_id_info)
+		say(text=f"YOU GOT IT\n:clap: :clap:\n You win 1 point, {user_id}!", response_type="ephemeral")
+	else:
+		print("Not Good")
+		say(text=f"nope.", response_type="ephemeral")
 	
 @app.event("message")
 def	handle_message_events(body, logger):
 	logger.info("received message event: %s", body)
 
 #########################Slash commands calls##################################
+
 @app.command("/leaderboard")
-def show_leaderboard(ack, body, say):
+def show_leaderboard(ack, body, respond):
     ack()
-    leaderboard.show_leaderboard(ack, body, say)
+    leaderboard.show_leaderboard(ack, body, respond)
 
 @app.command("/get_rank")
 def show_rank(ack, body, respond):
@@ -124,6 +128,7 @@ def show_rank(ack, body, respond):
         respond("I need a valid user name, aka. login.")
 
 ########################Launch Message#########################################
+
 # def launch_message():
 	# message = (
     #     "yoyoyo <!channel> ready to do stuff???\n\n"

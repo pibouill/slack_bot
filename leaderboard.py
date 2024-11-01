@@ -1,9 +1,14 @@
-##########################
-##########################
-##########################
-##########################
-##########################
-##########################
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    leaderboard.py                                     :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: pibouill <pibouill@student.42prague.com>   +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/09/01 12:21:21 by pibouill          #+#    #+#              #
+#    Updated: 2024/11/01 12:24:24 by pibouill         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
 
 from collections import UserDict
 import os
@@ -18,7 +23,6 @@ slack_token = os.getenv("SLACK_BOT_TOKEN")
 client = WebClient(token=slack_token)
 
 # Load leaderboard from JSON file
-
 def load_leaderboard():
     # If the file doesn't exist, create an empty file
     if not os.path.exists(LEADERBOARD_FILE):
@@ -37,7 +41,6 @@ def save_leaderboard(leaderboard):
     with open(LEADERBOARD_FILE, 'w') as f:
         json.dump(leaderboard, f)
 
-
 #add users to the leaderboard
 def add_user_to_leaderboard(user_id, points=1):
     if user_id in leaderboard:
@@ -52,7 +55,7 @@ def get_user_real_name(app, user_id):
         user_info = response['user']
         return user_info['real_name']
     except SlackApiError as e:
-        print(f"{app.bcolors.WARNING}fetching user info: {e.response['error']}{app.bcolors.ENDC}")
+        print(f"{cls.WARNING}fetching user info: {e.response['error']}{cls.ENDC}")
 
 user_cache = {}
 
@@ -68,7 +71,7 @@ def get_user_id_by_name(app, name):
             user_cache[user['id']] = user['id']
 
             if user.get('real_name') == name or user.get('name') == name:
-             return user['id']  # Return user ID if found
+             return user['id']
 
     except Exception as e:
         print(f"Error fetching user list: {e}")
@@ -88,32 +91,10 @@ def format_leaderboard():
         formatted.append(f"{real_name}: {points} points")
     return f"*Leaderboard:*\n\n" + "\n".join(formatted)
 
-#add points to a user (including the sender)
-# def add_points(ack, body, say):
-#     ack()  # Acknowledge the command request
-
-#     user_id = body['user_id']
-#     text = body.get('text', '').strip()
-
-#     # If text is empty, add points to the sender
-#     if not text:
-#         add_user_to_leaderboard(user_id)
-#         say(f"<@{user_id}> has been added to the leaderboard with 1 point!")
-#     else:
-#         try:
-#             # Allow tagging users and specifying points (optional)
-#             target_user = text.split()[0].strip("<@>")
-#             points = int(text.split()[1]) if len(text.split()) > 1 else 1
-
-#             add_user_to_leaderboard(target_user, points)
-#             say(f"<@{target_user}> has been awarded {points} point(s)!")
-#         except (IndexError, ValueError):
-#             say("Invalid input! Use the format `/addpoints @user [points]`")
-
 # Command to show the leaderboard
-def show_leaderboard(ack, body, say):
+def show_leaderboard(ack, body, respond):
     ack()  # Acknowledge the command request
-    say(format_leaderboard().replace('@', ''))
+    respond(format_leaderboard().replace('@', ''))
 
 def get_user_rank(user_id, app):
     user_id = get_user_id_by_name(app, user_id)

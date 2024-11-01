@@ -6,7 +6,7 @@
 #    By: pibouill <pibouill@student.42prague.com>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/09/01 12:24:16 by pibouill          #+#    #+#              #
-#    Updated: 2024/11/01 13:08:24 by pibouill         ###   ########.fr        #
+#    Updated: 2024/11/01 14:19:43 by pibouill         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,14 +53,20 @@ signal.signal(signal.SIGTERM, shutdown_handler)
 @app.event("app_mention")
 def mention_handler(body: dict, client):
 
-	user_id = body.get('event', {}).get('user')
+	user_id_info = body.get('event', {}).get('user')
+	user_info = app.client.users_info(user=user_id_info)
+	user_name = user_info.get('user', {}).get('real_name')
 	
-    # user_id = body['event']['user']
-	print(user_id)
-	client.chat_postMessage(
-        channel = user_id,
-        text=f"What's up? {user_id}\nGive me something"
-    )
+	print(f"User ID: {user_id_info}, User name: {user_name}")
+
+	try:
+		client.chat_postEphemeral(
+			channel = body['event']['channel'],
+			user=user_id_info,
+			text=f"What's up? {user_name}\nGive me something"
+		)
+	except Exception as e:
+		print(f"Error sending message: {e}")
 
 #### Get info from user's message #############################################
 
@@ -70,7 +76,6 @@ def mention_handler(body: dict, client):
 
 	user_submission = user_submission.replace(bot_id, "").strip()
 
-	user_id_info = body.get('event', {}).get('user')
 
 	sending_time = body.get("event_time")
 
@@ -79,15 +84,13 @@ def mention_handler(body: dict, client):
 	else:
 		sending_time = None
 
-	u = app.client.users_info(user=user_id_info)
-	user_name = u.get('user', {}).get('real_name')
 
 ############################## Print infos ####################################
 
-    # print(body)
+	print(body)
 	print("\n-------------------------------------------------\n")
 	print("\nbot_id-->", bot_id)
-	print("user_id-->", user_id)
+	print("user_name-->", user_name)
 	print("user_name -->", user_name)
 	print("user_submission-->", user_submission)
 	print("sending_time-->", sending_time)
@@ -96,12 +99,18 @@ def mention_handler(body: dict, client):
 ###################Bot output##################################################
 
 	if valid_input.lower() in user_submission.lower():
-		print("Good")
 		leaderboard.add_user_to_leaderboard(user_id_info)
-		say(text=f"YOU GOT IT\n:clap: :clap:\n You win 1 point, {user_id}!", response_type="ephemeral")
+		client.chat_postEphemeral(
+			channel = body['event']['channel'],
+			user=user_id_info,
+			text=f"YOU GOT IT\n:clap: :clap:\n You win 1 point, {user_name}!"
+		)
 	else:
-		print("Not Good")
-		say(text=f"nope.", response_type="ephemeral")
+		client.chat_postEphemeral(
+			channel = body['event']['channel'],
+			user=user_id_info,
+			text="nope"
+		)
 	
 @app.event("message")
 def	handle_message_events(body, logger):

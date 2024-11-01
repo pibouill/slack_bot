@@ -6,7 +6,7 @@
 #    By: pibouill <pibouill@student.42prague.com>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/09/01 12:21:21 by pibouill          #+#    #+#              #
-#    Updated: 2024/11/01 12:24:24 by pibouill         ###   ########.fr        #
+#    Updated: 2024/11/01 14:41:10 by pibouill         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -88,8 +88,8 @@ def format_leaderboard():
     for user_id, points in sorted_leaderboard:
         real_name = get_user_real_name(app, user_id)
         print(real_name)
-        formatted.append(f"{real_name}: {points} points")
-    return f"*Leaderboard:*\n\n" + "\n".join(formatted)
+        formatted.append(f"{real_name}: {points} point(s)")
+    return f"*LEADERBOARD:*\n\n" + "\n".join(formatted)
 
 # Command to show the leaderboard
 def show_leaderboard(ack, body, respond):

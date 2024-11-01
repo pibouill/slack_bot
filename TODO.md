@@ -10,9 +10,12 @@
 - [ ] give users point only for first submission and tell them they already played
 - [ ] give users x number of tries if wrong
 - [ ] slash command to list the previous songs played
-- [-] slash command to get specific user rank
+- [x] slash command to get specific user rank
 
 ### Points
 
 - [ ] give 1 point if either song name or artist
 - [ ] give 3 points if both
+
+
+### Youtube link ????

@@ -11,6 +11,7 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 import os
 import datetime
 from dotenv import load_dotenv
+from slack_bolt.context import respond
 import leaderboard
 import signal
 
@@ -103,11 +104,6 @@ def mention_handler(body: dict, say):
 def	handle_message_events(body, logger):
 	logger.info("received message event: %s", body)
 
-# @app.command("/addpoints")
-# def add_points(ack, body, say):
-#     ack()
-#     leaderboard.add_points(ack, body, say)
-
 #########################Slash commands calls##################################
 @app.command("/leaderboard")
 def show_leaderboard(ack, body, say):
@@ -115,16 +111,17 @@ def show_leaderboard(ack, body, say):
     leaderboard.show_leaderboard(ack, body, say)
 
 @app.command("/get_rank")
-def show_rank(ack, body, say):
+def show_rank(ack, body, respond):
     ack()
     user_name = body.get('text', '').strip()
-    # print(f"User mention received: {user_name}")
 
-    if user_name:
+    if user_name.find('@') != -1:
+        respond("Without @ pls")
+    elif user_name:
         rank_message = leaderboard.get_user_rank(user_name, app)
-        say(rank_message)
+        respond(rank_message)
     else:
-        say("I need a valid user name, aka. login.")
+        respond("I need a valid user name, aka. login.")
 
 ########################Launch Message#########################################
 # def launch_message():

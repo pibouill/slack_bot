@@ -48,18 +48,11 @@ def add_user_to_leaderboard(user_id, points=1):
 
 def get_user_real_name(app, user_id):
     try:
-        user_info = app.client.users_info(user=user_id)
-        return user_info['user']['real_name']
-    except Exception as e:
-        print(f"{cls.WARNING}Error fetching user info: {e}{cls.ENDC}")
-        return f"<@{user_id}>"
-
-    # try:
-    #     response = client.users_info(user=user_id)
-    #     user_info = response['user']
-    #     return user_info['real_name']
-    # except SlackApiError as e:
-    #     print(f"{app.bcolors.WARNING}fetching user info: {e.response['error']}{app.bcolors.ENDC}")
+        response = client.users_info(user=user_id)
+        user_info = response['user']
+        return user_info['real_name']
+    except SlackApiError as e:
+        print(f"{app.bcolors.WARNING}fetching user info: {e.response['error']}{app.bcolors.ENDC}")
 
 user_cache = {}
 
@@ -91,6 +84,7 @@ def format_leaderboard():
     formatted = []
     for user_id, points in sorted_leaderboard:
         real_name = get_user_real_name(app, user_id)
+        print(real_name)
         formatted.append(f"{real_name}: {points} points")
     return f"*Leaderboard:*\n\n" + "\n".join(formatted)
 

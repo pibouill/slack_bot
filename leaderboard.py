@@ -6,7 +6,7 @@
 #    By: pibouill <pibouill@student.42prague.com>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/09/01 12:21:21 by pibouill          #+#    #+#              #
-#    Updated: 2024/11/01 14:41:10 by pibouill         ###   ########.fr        #
+#    Updated: 2024/11/01 16:05:06 by pibouill         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,7 @@ import app
 from app import cls
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+import youtube_dl
 
 LEADERBOARD_FILE = "leaderboard.json"
 slack_token = os.getenv("SLACK_BOT_TOKEN")
